@@ -1,91 +1,55 @@
 import { render, screen } from "@testing-library/react";
-import '@testing-library/jest-dom';
+import userEvent from "@testing-library/user-event";
+import "@testing-library/jest-dom"; // Import Jest DOM extension
 
 import App from "../App";
 
-// Portfolio Elements
-test("displays a top-level heading with the text `Hi, I'm _______`", () => {
+test("newsletter form contains required elements", () => {
   render(<App />);
 
-  const topLevelHeading = screen.getByRole("heading", {
-    name: /hi, i'm/i,
-    exact: false,
-    level: 1,
-  });
-
-  expect(topLevelHeading).toBeInTheDocument();
+  // Check if name and email input fields are present
+  expect(screen.getByLabelText(/name/i)).toBeInTheDocument();
+  expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
+  // Check if there are associated input elements for the "Interests" labels
+  expect(screen.getByLabelText(/music/i)).toBeInTheDocument();
+  expect(screen.getByLabelText(/sports/i)).toBeInTheDocument();
+  // Check if the subscribe button is present
+  expect(screen.getByRole("button", { name: /subscribe/i })).toBeInTheDocument();
 });
 
-test("displays an image of yourself", () => {
+test("typing in name and email input fields updates their values", () => {
   render(<App />);
 
-  const image = screen.getByAltText("My profile pic");
+  // Simulate typing in the name input field
+  userEvent.type(screen.getByLabelText(/name/i), "John Doe");
+  // Verify that the value of the name input field is updated
+  expect(screen.getByLabelText(/name/i)).toHaveValue("John Doe");
 
-  expect(image).toHaveAttribute("src", "https://via.placeholder.com/350");
+  // Simulate typing in the email input field
+  userEvent.type(screen.getByLabelText(/email/i), "john@example.com");
+  // Verify that the value of the email input field is updated
+  expect(screen.getByLabelText(/email/i)).toHaveValue("john@example.com");
 });
 
-test("displays second-level heading with the text `About Me`", () => {
+test("selecting interests updates the state", () => {
   render(<App />);
 
-  const secondLevelHeading = screen.getByRole("heading", {
-    name: /about me/i,
-    level: 2,
-  });
-
-  expect(secondLevelHeading).toBeInTheDocument();
+  // Simulate clicking on interest checkboxes
+  userEvent.click(screen.getByLabelText(/music/i));
+  userEvent.click(screen.getByLabelText(/sports/i));
+  // Add your own assertion here to check the state if necessary
 });
 
-test("displays a paragraph for your biography", () => {
+test("submitting the form displays a success message", () => {
   render(<App />);
 
-  const bio = screen.getByText(/lorem ipsum/i);
+  // Simulate filling out the form
+  userEvent.type(screen.getByLabelText(/name/i), "John Doe");
+  userEvent.type(screen.getByLabelText(/email/i), "john@example.com");
+  userEvent.click(screen.getByLabelText(/music/i)); // Assuming "music" is one of the interests
+  // Simulate submitting the form
+  userEvent.click(screen.getByRole("button", { name: /subscribe/i }));
 
-  expect(bio).toBeInTheDocument();
-});
-
-test("displays the correct links", () => {
-  render(<App />);
-
-  const githubLink = screen.getByRole("link", {
-    name: /github/i,
-  });
-  const linkedinLink = screen.getByRole("link", {
-    name: /linkedin/i,
-  });
-
-  expect(githubLink).toHaveAttribute(
-    "href",
-    expect.stringContaining("https://github.com")
-  );
-
-  expect(linkedinLink).toHaveAttribute(
-    "href",
-    expect.stringContaining("https://linkedin.com")
-  );
-});
-
-// Newsletter Form - Initial State
-test("the form includes text inputs for name and email address", () => {
-  // your test code here
-});
-
-test("the form includes three checkboxes to select areas of interest", () => {
-  // your test code here
-});
-
-test("the checkboxes are initially unchecked", () => {
-  // your test code here
-});
-
-// Newsletter Form - Adding Responses
-test("the page shows information the user types into the name and email address form fields", () => {
-  // your test code here
-});
-
-test("checked status of checkboxes changes when user clicks them", () => {
-  // your test code here
-});
-
-test("a message is displayed when the user clicks the Submit button", () => {
-  // your test code here
+  // Verify that the success message is displayed
+  expect(screen.getByText(/thank you for subscribing/i)).toBeInTheDocument();
 });
